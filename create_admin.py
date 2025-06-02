@@ -1,5 +1,6 @@
 from app.database import SessionLocal
-from app import crud, schemas
+from app import schemas
+from app.services import crud
 
 # Crear conexión a la base de datos
 db = SessionLocal()
