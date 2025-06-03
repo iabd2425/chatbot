@@ -4,17 +4,11 @@ import requests
 from jose import jwt 
 import os
 from dotenv import load_dotenv
-from styles import CSS
-from chatbot_elastic import query_elasticsearch_raw
-from gpt_razona_sobre import gpt_razona_sobre
+from styles import CSS1
 from api import login_user, get_users, create_user, update_user, delete_user, chat_with_bot
 
 load_dotenv()
 
-BACKEND_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
-USE_OPEN_ROUTER = os.getenv("USE_OPEN_ROUTER", "false").lower() == "true"
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 chat_history = [
@@ -45,14 +39,13 @@ def reemplazar_nombres_por_urls(mensaje: str, dataset_hoteles: list) -> str:
     for hotel in dataset_hoteles:
         nombre = re.escape(hotel["nombre"])
         url = hotel.get("url", "")
-        location = hotel.get("coordenadas", {})
-        if location:
-            iframe = generar_iframe_mapa(location)
         if url:
             # Reemplaza el nombre por un enlace Markdown
             mensaje = re.sub(rf'\b{nombre}\b', f"[{hotel['nombre']}]({url})", mensaje)
-
-
+        location = hotel.get("coordenadas", {})
+        if location and len(dataset_hoteles) == 1:
+            iframe = generar_iframe_mapa(location)
+            mensaje += iframe 
     return mensaje
 
 def generar_iframe_mapa(location: dict) -> str:
@@ -63,7 +56,7 @@ def generar_iframe_mapa(location: dict) -> str:
         marker = f"{lat}%2C{lon}"
         src = f"https://www.openstreetmap.org/export/embed.html?bbox={bbox}&layer=mapnik&marker={marker}"
         return (
-            f'<iframe width="100%" height="100" frameborder="1" scrolling="no" '
+            f'<iframe width="100%" height="200" frameborder="1" scrolling="no" '
             f'marginheight="0" marginwidth="0" src="{src}"></iframe>'
         )
     except (KeyError, TypeError, ValueError):
@@ -72,56 +65,9 @@ def generar_iframe_mapa(location: dict) -> str:
 def chat_response(message, chat_history, token):    
     if "hotel" in message.lower() or "alojamiento" in message.lower() or "reserva" in message.lower():
         respuesta = chat_with_bot(message, token)
-        # docs = query_elasticsearch_raw(message, size=8)
-        # if not docs:
-        #     return "<div class='chat-msg bot-msg'><span style='color:black; font-weight:bold;'>❌ No se encontraron hoteles relevantes.</span></div>", ""
-
-        # razonamiento = gpt_razona_sobre(docs, message)
-        # razonamiento_html = razonamiento.replace('\n', '<br>')
-
-        # # Buscar el hotel mencionado en la respuesta
-        # hotel_elegido = None
-        # for h in docs:
-        #     if h.get("nombre", "").lower() in razonamiento.lower():
-        #         hotel_elegido = h
-        #         break
-
-        coords_html = ""
-        # if hotel_elegido and hotel_elegido.get("coordenadas"):
-        #     coords = hotel_elegido["coordenadas"]
-        #     lat, lon = coords.get("lat"), coords.get("lon")
-        #     if lat and lon:
-        #         coords_html = f"""
-        #             <div style='margin-top:20px'>
-        #                 <iframe
-        #                     width="100%"
-        #                     height="300"
-        #                     frameborder="0"
-        #                     scrolling="no"
-        #                     marginheight="0"
-        #                     marginwidth="0"
-        #                     src="https://www.openstreetmap.org/export/embed.html?bbox={lon-0.01}%2C{lat-0.01}%2C{lon+0.01}%2C{lat+0.01}&layer=mapnik&marker={lat}%2C{lon}">
-        #                 </iframe>
-        #                 <small>
-        #                     <a href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map=15/{lat}/{lon}" target="_blank">Ver mapa más grande</a>
-        #                 </small>
-        #             </div>
-        #         """
-        
         reply = respuesta["respuesta"]
         ds = respuesta["resultados"]
-        n_resultados = respuesta["hits"]
-        reply = reemplazar_nombres_por_urls(reply, ds)
-
-        html = f"""
-        <div class='chat-container'>
-            <div class='chat-msg bot-msg'>
-                <span style='color:black; font-weight:bold;'>{respuesta["respuesta"]}</span>
-                {coords_html}
-            </div>
-        </div>
-        """
-        
+        reply = reemplazar_nombres_por_urls(reply, ds)        
         chat_history.append({"role": "assistant", "content": reply})
         html = "<div class='chat-container'>"
         for turn in chat_history:
@@ -132,31 +78,9 @@ def chat_response(message, chat_history, token):
         return f"<div class='chat-msg user-msg'><span style='color:black; font-weight:bold;'>❌ Error: {response.status_code} - {response.text}</span></div>", ""
 
     # Fallback
-    if not USE_OPEN_ROUTER or not OPENAI_API_KEY:
-        return "<div class='chat-msg user-msg'><span style='color:black; font-weight:bold;'>⚠️ Configuración inválida. Revisa .env</span></div>", ""
-
-    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-    payload = {"model": "openai/gpt-3.5-turbo", "messages": chat_history + [{"role": "user", "content": message}]}
-
-    try:
-        response = requests.post(f"{OPENAI_BASE_URL}/chat/completions", json=payload, headers=headers)
-        if response.status_code == 200:
-            reply = response.json()["choices"][0]["message"]["content"]
-            chat_history.append({"role": "user", "content": message})
-            chat_history.append({"role": "assistant", "content": reply})
-
-            html = "<div class='chat-container'>"
-            for turn in chat_history:
-                role_class = "user-msg" if turn["role"] == "user" else "bot-msg"
-                html += f"<div class='chat-msg {role_class}'><span style='color:black; font-weight:bold;'>{turn['content']}</span></div>"
-            html += "</div>"
-            return html, ""
-        return f"<div class='chat-msg user-msg'><span style='color:black; font-weight:bold;'>❌ Error: {response.status_code} - {response.text}</span></div>", ""
-    except Exception as e:
-        return f"<div class='chat-msg user-msg'><span style='color:black; font-weight:bold;'>🚨 Error al conectar: {e}</span></div>", ""
 
 # ---------------- INTERFAZ GRADIO ----------------
-with gr.Blocks(css=CSS) as chatbot:
+with gr.Blocks(css=CSS1) as chatbot:
     gr.Markdown("# 🧠 Login y Panel de Administración / Chatbot")
 
     token_state = gr.State("")
@@ -203,12 +127,14 @@ with gr.Blocks(css=CSS) as chatbot:
         delete_status = gr.Textbox(label="Resultado", interactive=False)
 
     with gr.Group(visible=False) as user_section:
-        gr.Markdown("### 💬 Chatbot")
-        chat_html_box = gr.Chatbot(elem_id="chat-box",type="messages")
+        with gr.Row():
+            gr.Markdown("### 💬 Chatbot", elem_id="chat-title")
+            logout_btn2 = gr.Button("Cerrar sesión")
+        chat_html_box = gr.Chatbot(elem_id="chat-box",type="messages", sanitize_html=False, height="70vh", show_label=False)
         #chat_html_box = gr.HTML(elem_id="chat-box")
         msg_input = gr.Textbox(label="Tu mensaje")
-        send_btn = gr.Button("Enviar")
-        logout_btn2 = gr.Button("Cerrar sesión")
+        send_btn = gr.Button("Enviar")       
+        
     
     msg_input.submit(fn=user_query, 
                      inputs=[msg_input, chat_html_box], 
@@ -278,4 +204,4 @@ with gr.Blocks(css=CSS) as chatbot:
 
 
 
-chatbot.launch()
+chatbot.launch(share=True, server_port=8080)

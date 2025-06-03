@@ -73,9 +73,12 @@ CSS="""
 .login-box .gr-button:active {
     transform: scale(0.98);
 }
-
+.chat-box{
+    height: 85vh;
+    overflow-y: auto;
+}
     .chat-container {
-        max-height: 400px;
+        #max-height: 400px;
         overflow-y: auto;
         background: #f5f5f5;
         padding: 1rem;
@@ -115,4 +118,11 @@ CSS="""
         margin: auto;
         z-index: 1000;
     }
+"""
+
+CSS1 = """
+#chat-title {
+  flex-grow: 1;
+  margin: auto 0;  
+}
 """
