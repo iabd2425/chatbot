@@ -1,15 +1,14 @@
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+from app.config import SECRET_KEY
 
-SECRET_KEY = os.getenv("SECRET_KEY", "secret")
+SECRET_KEY = SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

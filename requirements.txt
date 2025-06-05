@@ -2,6 +2,7 @@ fastapi
 uvicorn
 sqlalchemy
 passlib[bcrypt]
+bcrypt
 python-jose[cryptography]
 python-dotenv
 pydantic
@@ -9,3 +10,4 @@ requests
 python-multipart
 gradio
 Elasticsearch==8.18.0
+ollama

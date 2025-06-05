@@ -2,10 +2,8 @@ import requests
 import os
 from dotenv import load_dotenv
 from jose import jwt
+from config import API_URL, API_VERSION
 
-load_dotenv()
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
-API_VERSION = os.getenv("API_VERSION", "v1")
 API_PREFIX = f"{API_URL}/{API_VERSION}"
 
 def login_user(username, password):    
@@ -58,4 +56,3 @@ def chat_with_bot(message, token):
     if response.status_code == 200:
         return response.json()
     return None
-

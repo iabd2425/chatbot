@@ -5,11 +5,8 @@ from jose import jwt
 import os
 from dotenv import load_dotenv
 from styles import CSS1
+from config import SECRET_KEY
 from api import login_user, get_users, create_user, update_user, delete_user, chat_with_bot
-
-load_dotenv()
-
-SECRET_KEY = os.getenv("SECRET_KEY")
 
 chat_history = [
 ]
@@ -31,8 +28,11 @@ def login_and_fetch_users(username, password):
         return f"⚠️ Error conectando al servidor: {e}", gr.update(), gr.update(), gr.update(), "", [], []
 
 def user_query(message, chat_history):
-    chat_history.append({"role": "user", "content": message})
-    return message, chat_history
+    if not message or not message.strip():
+        return "", chat_history
+    else:
+        chat_history.append({"role": "user", "content": message})
+        return message, chat_history
 
 
 def reemplazar_nombres_por_urls(mensaje: str, dataset_hoteles: list) -> str:
@@ -41,7 +41,7 @@ def reemplazar_nombres_por_urls(mensaje: str, dataset_hoteles: list) -> str:
         url = hotel.get("url", "")
         if url:
             # Reemplaza el nombre por un enlace Markdown
-            mensaje = re.sub(rf'\b{nombre}\b', f"[{hotel['nombre']}]({url})", mensaje)
+            mensaje = re.sub(rf'\b{nombre}\b', f"[{hotel['nombre']}]({url})", mensaje, count=1)
         location = hotel.get("coordenadas", {})
         if location and len(dataset_hoteles) == 1:
             iframe = generar_iframe_mapa(location)
@@ -69,15 +69,16 @@ def chat_response(message, chat_history, token):
         ds = respuesta["resultados"]
         reply = reemplazar_nombres_por_urls(reply, ds)        
         chat_history.append({"role": "assistant", "content": reply})
+    else:
+        chat_history.append({"role": "assistant", "content": "Lo siento, no puedo ayudarte con eso."})
         html = "<div class='chat-container'>"
         for turn in chat_history:
             role_class = "user-msg" if turn["role"] == "user" else "bot-msg"
             html += f"<div class='chat-msg {role_class}'><span style='color:black; font-weight:bold;'>{turn['content']}</span></div>"
             html += "</div>"
-        return chat_history, ""    
-        return f"<div class='chat-msg user-msg'><span style='color:black; font-weight:bold;'>❌ Error: {response.status_code} - {response.text}</span></div>", ""
+    return chat_history, ""    
+        #return f"<div class='chat-msg user-msg'><span style='color:black; font-weight:bold;'>❌ Error: {response.status_code} - {response.text}</span></div>", ""
 
-    # Fallback
 
 # ---------------- INTERFAZ GRADIO ----------------
 with gr.Blocks(css=CSS1) as chatbot:

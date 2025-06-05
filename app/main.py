@@ -1,13 +1,16 @@
 from fastapi import FastAPI
+from app import config
+from app.config import config_logging
 from app.routers import auth, users, chat
-from app.database import engine
-from fastapi.openapi.utils import get_openapi
+
+config_logging()
 
 app = FastAPI(
     title="Chatbot API",
     description="API para el chatbot",
     version="0.1.0",
 )
+
 
 @app.get("/")
 async def read_root():
