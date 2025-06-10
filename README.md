@@ -47,16 +47,19 @@ La arquitectura del proyecto se basa en una combinación de componentes que trab
 
 **Diagrama:**
 
-```mermaid
-graph LR
-    A[Cliente (Gradio/HTTP)] --> B(FastAPI);
-    B --> D(LLM (OpenRouter/Ollama));
-    D --> C{Elasticsearch};
-    D --> B;
-    B --> A;
+Diagram:  
+```
+Cliente → FastAPI → LLM (OpenRouter/Ollama)  
+                        ↓  
+                    Elasticsearch  
+                        ↓  
+                    LLM (OpenRouter/Ollama)  
+                        ↓  
+                   FastAPI → Cliente  
 ```
 
 ---
+
 
 ## 📂 Estructura del Proyecto
 
