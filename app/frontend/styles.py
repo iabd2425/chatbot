@@ -8,6 +8,59 @@ CSS="""
     align-items: center;
 }
 
+.chat-box{
+    height: 85vh;
+    overflow-y: auto;
+}
+    .chat-container {
+        #max-height: 400px;
+        overflow-y: auto;
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-family: sans-serif;
+    }
+    .chat-msg {
+        margin: 0.5rem 0;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        max-width: 80%;
+        word-wrap: break-word;
+        display: inline-block;
+    }
+    .user-msg {
+        background: #dcf8c6;
+        float: right;
+        clear: both;
+    }
+    .bot-msg {
+        background: #ffffff;
+        border: 1px solid #ccc;
+        float: left;
+        clear: both;
+    }
+    .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #222;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        max-width: 500px;
+        margin: auto;
+        z-index: 1000;
+    }
+#chat-title {
+  flex-grow: 1;
+  margin: auto 0;  
+}
+
+"""
+
+CSS_BAK = """
 .login-box {
     background: #ffffff;
     width: 100%;
@@ -73,55 +126,6 @@ CSS="""
 
 .login-box .gr-button:active {
     transform: scale(0.98);
-}
-.chat-box{
-    height: 85vh;
-    overflow-y: auto;
-}
-    .chat-container {
-        #max-height: 400px;
-        overflow-y: auto;
-        background: #f5f5f5;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        font-family: sans-serif;
-    }
-    .chat-msg {
-        margin: 0.5rem 0;
-        padding: 0.7rem 1rem;
-        border-radius: 12px;
-        max-width: 80%;
-        word-wrap: break-word;
-        display: inline-block;
-    }
-    .user-msg {
-        background: #dcf8c6;
-        float: right;
-        clear: both;
-    }
-    .bot-msg {
-        background: #ffffff;
-        border: 1px solid #ccc;
-        float: left;
-        clear: both;
-    }
-    .modal {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #222;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
-        max-width: 500px;
-        margin: auto;
-        z-index: 1000;
-    }
-#chat-title {
-  flex-grow: 1;
-  margin: auto 0;  
 }
 
 """

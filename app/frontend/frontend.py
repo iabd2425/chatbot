@@ -82,7 +82,8 @@ def chat_response(message, chat_history, token):
 
 # ---------------- INTERFAZ GRADIO ----------------
 with gr.Blocks(css=CSS) as chatbot:
-    gr.Markdown("# 🧠 Login y Panel de Administración / Chatbot")
+    
+    gr.Markdown("# 🧠 Databot Solutions: Chatbot sobre hoteles andaluces de Booking.com")
 
     token_state = gr.State("")
     current_user_list = gr.State([])
@@ -133,7 +134,7 @@ with gr.Blocks(css=CSS) as chatbot:
             logout_btn2 = gr.Button("Cerrar sesión")
         chat_html_box = gr.Chatbot(elem_id="chat-box",type="messages", sanitize_html=False, height="70vh", show_label=False)
         #chat_html_box = gr.HTML(elem_id="chat-box")
-        msg_input = gr.Textbox(label="Tu mensaje")
+        msg_input = gr.Textbox(label="Tu pregunta")
         send_btn = gr.Button("Enviar")       
         
     
