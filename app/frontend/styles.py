@@ -1,4 +1,5 @@
 CSS="""               
+
 .gradio-container {
     height: 100vh;
     background-color: #0e0e11; /* Muy importante para quitar el blanco lateral */
@@ -118,11 +119,9 @@ CSS="""
         margin: auto;
         z-index: 1000;
     }
-"""
-
-CSS1 = """
 #chat-title {
   flex-grow: 1;
   margin: auto 0;  
 }
+
 """

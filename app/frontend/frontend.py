@@ -4,7 +4,7 @@ import requests
 from jose import jwt 
 import os
 from dotenv import load_dotenv
-from styles import CSS1
+from styles import CSS
 from config import SECRET_KEY
 from api import login_user, get_users, create_user, update_user, delete_user, chat_with_bot
 
@@ -81,7 +81,7 @@ def chat_response(message, chat_history, token):
 
 
 # ---------------- INTERFAZ GRADIO ----------------
-with gr.Blocks(css=CSS1) as chatbot:
+with gr.Blocks(css=CSS) as chatbot:
     gr.Markdown("# 🧠 Login y Panel de Administración / Chatbot")
 
     token_state = gr.State("")

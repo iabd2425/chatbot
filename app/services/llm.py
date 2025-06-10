@@ -9,7 +9,7 @@ from app.config import (ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_US
                         OPENROUTER_API_KEY, OPENROUTER_API_BASE, OPENROUTER_SITE_URL, OPENROUTER_MODEL, 
                         USE_OPEN_ROUTER, OLLAMA_MODEL)
 
-from app.services.llm_prompts import FEW_SHOT_PROMPT
+from app.services.llm_prompts import ELASTIC_PROMPT
 
 logger = logging.getLogger("chatbot")
 
@@ -54,17 +54,20 @@ def medir_tiempo(nombre_funcion: str = None):
 def extraer_json_valido(texto):
     try:
         match = re.search(r'\{.*\}', texto, re.DOTALL)
-        if not match:
-            raise ValueError("No se encontri bloque JSON.")
-        return json.loads(match.group())
+        if match:
+            return json.loads(match.group())
+        else:
+            error_msg = "No se encontró un bloque JSON válido."
+            logger.info(error_msg)
+            raise ValueError(error_msg)
     except json.JSONDecodeError as e:
-        print(" Error al parsear JSON:", e)
+        print("Error al parsear JSON:", e)
         print("Respuesta raw:\n", texto)
         return None
 
 @medir_tiempo("Generar Query desde LLM")
 def generar_consulta_llm(pregunta: str) -> dict:    
-    prompt = FEW_SHOT_PROMPT.replace("{pregunta}", pregunta)
+    prompt = ELASTIC_PROMPT.replace("{pregunta}", pregunta)
 
     if USE_OPEN_ROUTER:
         try:
@@ -75,9 +78,11 @@ def generar_consulta_llm(pregunta: str) -> dict:
                     )            
             contenido = respuesta.choices[0].message.content
             return contenido
-        except Exception as e: 
-            print(f" Error al llamar a OpenRouter: {e}")
-            return None
+        except Exception as e:
+            error_msg = "Error al llamar a OpenRouter: " + str(e)
+            logger.error(error_msg)
+            print(error_msg)
+            return "Error OpenRouter"
     else:
         try:
             respuesta = ollama.chat(
@@ -88,7 +93,9 @@ def generar_consulta_llm(pregunta: str) -> dict:
             contenido = respuesta["message"]["content"]
             return contenido            
         except requests.exceptions.RequestException as e:
-            print(f" Error al llamar a Ollama: {e}")
+            error_msg = "Error al llamar a Ollama: " + str(e)
+            logger.error(error_msg)
+            print(error_msg)
             return None
 
 
@@ -96,12 +103,16 @@ def procesar_consulta_generada(contenido: str) -> dict:
     try:
         consulta = extraer_json_valido(contenido)
         if not consulta:
-            raise ValueError("Consulta generada no es válida.")
+            error_msg = "Consulta generada no contiene un JSON válido."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
         json_comprimido = json.dumps(consulta, separators=(',', ':'))
         logger.info(f"Consulta generada: {json_comprimido}")
         return json_comprimido
     except ValueError as e:
-        print(f" Error al procesar la consulta generada: {e}")
+        error_msg = f"Error al procesar la consulta generada: {e}"
+        logger.error(error_msg)
+        print(error_msg)
         return None
 
 @medir_tiempo("Consulta a Elasticsearch")    
@@ -157,14 +168,19 @@ def construir_prompt_multiple(pregunta, resultados) -> str:
 @medir_tiempo("Respuesta final del LLM")
 def respuesta_natural(texto_prompt: str, dataset_hoteles: list) -> str:
     if USE_OPEN_ROUTER:
-        respuesta = openai_client.chat.completions.create(
-            model=OPENROUTER_MODEL,
-            messages=[{"role": "user", "content": texto_prompt}],
-            timeout=60
-        )
-        mensaje = respuesta.choices[0].message.content
-        
-        return mensaje
+        try:
+            respuesta = openai_client.chat.completions.create(
+                model=OPENROUTER_MODEL,
+                messages=[{"role": "user", "content": texto_prompt}],
+                timeout=60
+            )
+            mensaje = respuesta.choices[0].message.content
+            return mensaje
+        except Exception as e:
+            error_msg = "Error al llamar a OpenRouter: " + str(e)
+            logger.error(error_msg)
+            print(error_msg)
+            return "Error OpenRouter"
     else:
         try:
             respuesta = ollama.chat(
@@ -174,7 +190,9 @@ def respuesta_natural(texto_prompt: str, dataset_hoteles: list) -> str:
             )
             return respuesta["message"]["content"].strip()
         except requests.exceptions.RequestException as e:
-            print(f" Error al llamar a Ollama: {e}")
+            error_msg = "Error al llamar a Ollama: " + str(e)
+            logger.error(error_msg)
+            print(error_msg)
             return None
 
 def main():
@@ -183,7 +201,7 @@ def main():
     consulta = generar_consulta_llm(pregunta_usuario)
     consulta = procesar_consulta_generada(consulta)
     if not consulta:
-        return
+        return {"respuesta": "No se pudo generar una consulta válida.", "hits": 0, "resultados": []}
     resultados = buscar_en_elasticsearch(consulta)
     prompt_hoteles = construir_prompt_multiple(resultados)
     respuesta = respuesta_natural(prompt_hoteles)
@@ -192,14 +210,18 @@ def main():
 
 def llm_chat(pregunta : str) -> dict:
     consulta = generar_consulta_llm(pregunta)
+    if consulta == "Error OpenRouter":
+        return {"respuesta": "Límite diario de uso de OpenRouter. Cambiar a local.", "hits": 0, "resultados": []}
     consulta = procesar_consulta_generada(consulta)
     if not consulta:
-        return
+        return {"respuesta": "No se pudo generar una consulta válida.", "hits": 0, "resultados": []}
     resultados = buscar_en_elasticsearch(consulta)
     hit_count = obtener_num_resultados(resultados)
     dataset_hoteles = obtener_dataset_hoteles(resultados)    
     prompt_hoteles = construir_prompt_multiple(pregunta, resultados)
     respuesta = respuesta_natural(prompt_hoteles, dataset_hoteles)
+    if respuesta == "Error OpenRouter":
+        return {"respuesta": "Límite diario de uso de OpenRouter. Cambiar a local.", "hits": 0, "resultados": []}
     return {"respuesta": respuesta, "hits": hit_count, "resultados": dataset_hoteles}
 
 if __name__ == "__main__":

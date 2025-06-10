@@ -1,0 +1,80 @@
+### Test: hoteles en Aguadulce con piscina y parking, ordenados por precio
+POST http://localhost:9200/_search
+Content-Type: application/json
+Authorization: Basic ZWxhc3RpYzpyNGlLZEVwMw==
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "localidad": "aguadulce" } },
+        {
+          "bool": {
+            "should": [
+              { "match": { "servicios": "piscina" } },
+              { "match": { "servicios": "parking" } }
+            ],
+            "minimum_should_match": 2
+          }
+        }
+      ]
+    }
+  },
+  "sort": [{ "precio": "asc" }],
+  "size": 10
+}
+
+# {
+#   "query": {
+#     "bool": {
+#       "must": [
+#         { "match": { "localidad": "Aguadulce" } },
+#         { "terms": { "servicios": ["piscina", "bar"] } }
+#       ]
+#     }
+#   }
+# }
+
+### Test: hotel con mejor opinión en la provincia de Almería
+POST http://localhost:9200/_search
+Content-Type: application/json
+Authorization: Basic ZWxhc3RpYzpyNGlLZEVwMw==
+
+{
+  "query": {
+    "match": {
+      "provincia": "Almería"
+    }
+  },
+  "sort": [
+    { "opinion": "desc" }
+  ],
+  "size": 1
+}
+
+###Test Quiero saber el precio medio de los hoteles del grupo o marca Senator. 
+POST http://localhost:9200/_search
+Content-Type: application/json
+Authorization: Basic ZWxhc3RpYzpyNGlLZEVwMw==
+
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "filter": [
+         { "match": { "provincia": "almería" } },
+        { "match": { "marca": "Senator" } }
+      ]
+    }
+  },
+  
+  "aggs": {
+    "avg_price": {
+      "avg": {
+        "field": "precio"
+      }
+    }
+  }
+}
+
+
