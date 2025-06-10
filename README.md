@@ -50,8 +50,8 @@ La arquitectura del proyecto se basa en una combinación de componentes que trab
 ```mermaid
 graph LR
     A[Cliente (Gradio/HTTP)] --> B(FastAPI);
-    B --> C{LLM (OpenRouter/Ollama)};
-    C --> D(Elasticsearch);
+    B --> C{Elasticsearch};
+    C --> D(LLM (OpenRouter/Ollama));
     D --> B;
     B --> A;
 ```
