@@ -83,7 +83,7 @@ def chat_response(message, chat_history, token):
 # ---------------- INTERFAZ GRADIO ----------------
 with gr.Blocks(css=CSS) as chatbot:
     
-    gr.Markdown("# 🧠 Databot Solutions: Chatbot sobre hoteles andaluces de Booking.com")
+    gr.Markdown("# 🧠 Databot Solutions: Chatbot sobre hoteles andaluces de Booking.com", elem_classes=["center-text"])
 
     token_state = gr.State("")
     current_user_list = gr.State([])

@@ -1,76 +1,21 @@
-CSS="""               
+CSS="""
 
 .gradio-container {
     height: 100vh;
-    background-color: #0e0e11; /* Muy importante para quitar el blanco lateral */
+    margin: 0;
     display: flex;
-    justify-content: center;
+    justify-content: center; 
     align-items: center;
 }
 
-.chat-box{
-    height: 85vh;
-    overflow-y: auto;
-}
-    .chat-container {
-        #max-height: 400px;
-        overflow-y: auto;
-        background: #f5f5f5;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        font-family: sans-serif;
-    }
-    .chat-msg {
-        margin: 0.5rem 0;
-        padding: 0.7rem 1rem;
-        border-radius: 12px;
-        max-width: 80%;
-        word-wrap: break-word;
-        display: inline-block;
-    }
-    .user-msg {
-        background: #dcf8c6;
-        float: right;
-        clear: both;
-    }
-    .bot-msg {
-        background: #ffffff;
-        border: 1px solid #ccc;
-        float: left;
-        clear: both;
-    }
-    .modal {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #222;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
-        max-width: 500px;
-        margin: auto;
-        z-index: 1000;
-    }
-#chat-title {
-  flex-grow: 1;
-  margin: auto 0;  
-}
 
-"""
-
-CSS_BAK = """
 .login-box {
-    background: #ffffff;
-    width: 100%;
-    max-width: 480px;
+    width: 100%;    
     padding: 3rem 2.5rem;
     border-radius: 20px;
     box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease-in-out;
     animation: fadeIn 0.8s ease-in-out;
-               
 }
 
 @keyframes fadeIn {
@@ -86,7 +31,6 @@ CSS_BAK = """
     font-size: 2rem;
     margin-bottom: 2rem;
     text-align: center;
-    color: #1e3a8a;
     font-weight: 700;
 }
 
@@ -96,7 +40,6 @@ CSS_BAK = """
     border-radius: 12px;
     border: 1px solid #cbd5e1;
     font-size: 1rem;
-    background: #f8fafc;
     margin-bottom: 1.5rem;
     transition: box-shadow 0.3s ease;
 }
@@ -109,8 +52,6 @@ CSS_BAK = """
 .login-box .gr-button {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(to right, #3b82f6, #1d4ed8);
-    color: white;
     font-size: 1rem;
     font-weight: 600;
     border: none;
@@ -127,5 +68,59 @@ CSS_BAK = """
 .login-box .gr-button:active {
     transform: scale(0.98);
 }
+
+
+.chat-box{
+    height: 85vh;
+    overflow-y: auto;
+}
+    .chat-container {
+        #max-height: 400px;
+        overflow-y: auto;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-family: sans-serif;
+    }
+    .chat-msg {
+        margin: 0.5rem 0;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        max-width: 80%;
+        word-wrap: break-word;
+        display: inline-block;
+    }
+    .user-msg {
+        float: right;
+        clear: both;
+    }
+    .bot-msg {
+        border: 1px solid #ccc;
+        float: left;
+        clear: both;
+    }
+    .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        max-width: 500px;
+        margin: auto;
+        z-index: 1000;
+    }
+#chat-title {
+  flex-grow: 1;
+  margin: auto 0;  
+}
+
+.center-text {
+    text-align: center;
+}
+"""
+
+CSS_BAK = """
 
 """
