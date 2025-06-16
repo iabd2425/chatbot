@@ -71,7 +71,7 @@ CSS="""
 
 
 .chat-box{
-    height: 85vh;
+    height: 80vh;
     overflow-y: auto;
 }
     .chat-container {
@@ -119,6 +119,35 @@ CSS="""
 .center-text {
     text-align: center;
 }
+
+#header-row {
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#logo-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#text-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#title-text {
+    color: #1D71B8 !important;
+    text-align: center;
+}
+
+#logo-image {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
 """
 
 CSS_BAK = """

@@ -78,3 +78,51 @@ Authorization: Basic ZWxhc3RpYzpyNGlLZEVwMw==
 }
 
 
+###Test Quiero saber el precio medio de los hoteles del grupo o marca Senator. 
+POST http://localhost:9200/_search
+Content-Type: application/json
+Authorization: Basic ZWxhc3RpYzpyNGlLZEVwMw==
+
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "filter": [
+        { "match": { "provincia": "almería" } } // Filtro global para Almería
+      ]
+    }
+  },
+  "aggs": {
+    "comparativa_precios_almeria": {
+      "filters": {
+        "filters": {
+          "hoteles_senator_almeria": { // Cubo para Senator en Almería
+            "bool": {
+              "filter": [
+                { "match": { "marca": "Senator" } }
+                // No es necesario repetir "provincia": "almería" aquí
+                // porque ya está en el query principal.
+              ]
+            }
+          },
+          "resto_hoteles_almeria": { // Cubo para el resto de hoteles en Almería
+            "bool": {
+              "must_not": [ // Documentos que NO coincidan con marca Senator
+                { "match": { "marca": "Senator" } }
+              ]
+              // Implícitamente también filtrado por "provincia": "almería"
+              // debido al query principal.
+            }
+          }
+        }
+      },
+      "aggs": { // Sub-agregación para calcular el precio medio en cada cubo
+        "avg_price": {
+          "avg": {
+            "field": "precio"
+          }
+        }
+      }
+    }
+  }
+}

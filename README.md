@@ -47,7 +47,6 @@ La arquitectura del proyecto se basa en una combinación de componentes que trab
 
 **Diagrama:**
 
-Diagram:  
 ```
 Cliente → FastAPI → LLM (OpenRouter/Ollama)  
                         ↓  
