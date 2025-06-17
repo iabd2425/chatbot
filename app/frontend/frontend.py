@@ -21,7 +21,7 @@ def login_and_fetch_users(username, password):
             is_admin = decoded.get("is_admin", False)
             users_table_data = get_users(token)
             formatted_table = [[u["id"], u["username"], "Admin" if u["is_admin"] else "Usuario", "✏️", "🗑️"] for u in users_table_data]
-            return "", gr.update(visible=False), gr.update(visible=is_admin), gr.update(visible=not is_admin), token, formatted_table, users_table_data, "", ""
+            return "", gr.update(visible=False), gr.update(visible=is_admin), gr.update(visible=not is_admin), token, formatted_table, users_table_data
         else:
             return "❌ Login inválido", gr.update(), gr.update(), gr.update(), "", [], []
     except Exception as e:
@@ -180,7 +180,7 @@ with gr.Blocks(css=CSS) as chatbot:
         return msg, gr.update(visible=False), [[u["id"], u["username"], "Admin" if u["is_admin"] else "Usuario", "✏️", "🗑️"] for u in get_users(token)]
 
     login_btn.click(fn=login_and_fetch_users, inputs=[user_input, pass_input],
-        outputs=[login_status, login_section, admin_section, user_section, token_state, users_table, current_user_list, user_input, pass_input])
+        outputs=[login_status, login_section, admin_section, user_section, token_state, users_table, current_user_list])
 
     users_table.select(fn=handle_table_click, inputs=[token_state, current_user_list],
         outputs=[edit_modal, edit_id, edit_username, edit_password, edit_admin, delete_modal, confirm_text, confirm_user_id])
@@ -203,17 +203,17 @@ with gr.Blocks(css=CSS) as chatbot:
     cancel_create.click(fn=lambda: gr.update(visible=False), outputs=[create_modal])
     cancel_edit.click(fn=lambda: gr.update(visible=False), outputs=[edit_modal])
 
-    logout_btn1.click(fn=lambda: ("Sesión cerrada", gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), ""),
-        outputs=[login_status, login_section, admin_section, user_section, token_state])
+    logout_btn1.click(fn=lambda: ("Sesión cerrada", gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), "", "", ""),
+        outputs=[login_status, login_section, admin_section, user_section, token_state, user_input, pass_input])
     logout_btn2.click(fn=lambda: (chat_history.clear(),
                                  "Sesión cerrada",
                                  gr.update(visible=True),
                                  gr.update(visible=False),
                                  gr.update(visible=False),
-                                 "",  
+                                 "", "", "",  
                                  gr.update(value=[])
                                 )[1:],  # ignoramos el resultado de chat_history.clear()
-                                outputs=[login_status, login_section, admin_section, user_section,token_state, chat_html_box]
+                                outputs=[login_status, login_section, admin_section, user_section,token_state, user_input, pass_input, chat_html_box]
                      )
 
 
