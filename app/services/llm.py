@@ -4,7 +4,7 @@ from functools import wraps
 import logging
 import json
 import re
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch,  exceptions as es_exceptions
 from app.config import (ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_USERNAME, ELASTICSEARCH_PASSWORD, ES_INDEX, 
                         OPENROUTER_API_KEY, OPENROUTER_API_BASE, OPENROUTER_SITE_URL, OPENROUTER_MODEL, 
                         USE_OPEN_ROUTER, OLLAMA_MODEL)
@@ -60,6 +60,7 @@ def extraer_json_valido(texto):
             error_msg = "No se encontró un bloque JSON válido."
             logger.info(error_msg)
             raise ValueError(error_msg)
+            return None
     except json.JSONDecodeError as e:
         print("Error al parsear JSON:", e)
         print("Respuesta raw:\n", texto)
@@ -106,6 +107,7 @@ def procesar_consulta_generada(contenido: str) -> dict:
             error_msg = "Consulta generada no contiene un JSON válido."
             logger.error(error_msg)
             raise ValueError(error_msg)
+            return None
         json_comprimido = json.dumps(consulta, separators=(',', ':'))
         logger.info(f"Consulta generada: {json_comprimido}")
         return json_comprimido
@@ -117,8 +119,19 @@ def procesar_consulta_generada(contenido: str) -> dict:
 
 @medir_tiempo("Consulta a Elasticsearch")    
 def buscar_en_elasticsearch(consulta: dict):
-    return es.search(index=ES_INDEX, body=consulta)
-
+    try:
+        response = es.search(index=ES_INDEX, body=consulta)
+    except es_exceptions.BadRequestError as e:
+        print("Error en la consulta a Elasticsearch (400 - Bad Request):")
+        print(e.info)  
+        #response = {"error": "Consulta malformada. Revisa la estructura del body.", "details": e.info}
+        return None
+    except es_exceptions.ElasticsearchException as e:
+        print("Error general al consultar Elasticsearch:")
+        print(str(e))
+        #response = {"error": "Fallo al consultar Elasticsearch.", "details": str(e)}
+        return None
+    return response
 def obtener_num_resultados(resultados) -> int:
     if resultados and "hits" in resultados:
         return len(resultados.get("hits", {}).get("hits", []))
@@ -162,6 +175,8 @@ def construir_prompt_multiple(pregunta, resultados) -> str:
 - Puntuacion: {hotel.get('opinion', 'Sin opiniones')} 
 - Número de comentarios: ({hotel.get('comentarios', '0')} comentarios)
 - Precio: {hotel.get('precio', 'N/A')} EUR
+
+Incluye siempre el precio en la respuesta.
 """
     return prompt.strip()
 
@@ -216,6 +231,8 @@ def llm_chat(pregunta : str) -> dict:
     if not consulta:
         return {"respuesta": "No se pudo generar una consulta válida.", "hits": 0, "resultados": []}
     resultados = buscar_en_elasticsearch(consulta)
+    if not resultados:
+        return {"respuesta": "No se pudo generar una consulta válida.", "hits": 0, "resultados": []}
     hit_count = obtener_num_resultados(resultados)
     dataset_hoteles = obtener_dataset_hoteles(resultados)    
     prompt_hoteles = construir_prompt_multiple(pregunta, resultados)
