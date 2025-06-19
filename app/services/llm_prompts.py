@@ -202,6 +202,21 @@ Respuesta JSON:
   "size": 1
 }  
 
+Ejemplo 11:
+Pregunta: "Busca un hotel en Huelva de la marca o grupo Senator"
+Respuesta JSON:
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "marca": "Senator" } },
+        { "match": { "provincia": "Huelva" } }
+      ]
+    }
+  },
+  "size": 1
+}
+
 """
 
 ELASTIC_END_PROMPT = """

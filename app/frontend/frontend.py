@@ -11,6 +11,7 @@ from api import login_user, get_users, create_user, update_user, delete_user, ch
 chat_history = [
 ]
 
+saludo = "🤖 ¡Hola! Soy RoomiAI, chatbot para hoteles andaluces. Pídeme que te recomiende hoteles de cualquier provincia o localidad andaluza o que te de información sobre cualquier hotel."
 # ---------------- BACKEND FUNCIONES ----------------
 def login_and_fetch_users(username, password):
     try:
@@ -20,7 +21,7 @@ def login_and_fetch_users(username, password):
             decoded = jwt.decode(token, key={SECRET_KEY}, options={"verify_signature": False})
             is_admin = decoded.get("is_admin", False)
             users_table_data = get_users(token)
-            formatted_table = [[u["id"], u["username"], "Admin" if u["is_admin"] else "Usuario", "✏️", "🗑️"] for u in users_table_data]
+            formatted_table = [[u["id"], u["username"], "Admin" if u["is_admin"] else "Usuario", "✏️", "🗑️"] for u in users_table_data]            
             return "", gr.update(visible=False), gr.update(visible=is_admin), gr.update(visible=not is_admin), token, formatted_table, users_table_data
         else:
             return "❌ Login inválido", gr.update(), gr.update(), gr.update(), "", [], []
@@ -37,7 +38,8 @@ def user_query(message, chat_history):
 
 def reemplazar_nombres_por_urls(mensaje: str, dataset_hoteles: list) -> str:
     for hotel in dataset_hoteles:
-        nombre = re.escape(hotel["nombre"])
+        #nombre = re.escape(hotel["nombre"])
+        nombre = hotel.get("nombre", "")
         url = hotel.get("url", "")
         if url:
             # Reemplaza el nombre por un enlace Markdown
@@ -136,7 +138,8 @@ with gr.Blocks(css=CSS) as chatbot:
         with gr.Row():
             gr.Markdown("### 💬 Chatbot", elem_id="chat-title")
             logout_btn2 = gr.Button("Cerrar sesión")
-        chat_html_box = gr.Chatbot(elem_id="chat-box",type="messages", sanitize_html=False, height="70vh", show_label=False)
+
+        chat_html_box = gr.Chatbot(elem_id="chat-box",type="messages", sanitize_html=False, height="70vh", show_label=False, value=[{"role": "assistant", "content": saludo}])
         #chat_html_box = gr.HTML(elem_id="chat-box")
         msg_input = gr.Textbox(label="Tu pregunta")
         send_btn = gr.Button("Enviar")       
@@ -211,7 +214,7 @@ with gr.Blocks(css=CSS) as chatbot:
                                  gr.update(visible=False),
                                  gr.update(visible=False),
                                  "", "", "",  
-                                 gr.update(value=[])
+                                 gr.update(value=[{"role": "assistant", "content": saludo}])
                                 )[1:],  # ignoramos el resultado de chat_history.clear()
                                 outputs=[login_status, login_section, admin_section, user_section,token_state, user_input, pass_input, chat_html_box]
                      )
